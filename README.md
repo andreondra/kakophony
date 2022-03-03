@@ -1,6 +1,8 @@
 # kakophony
 The kakophony (from [cacophony](https://dictionary.cambridge.org/dictionary/english/cacophony)) is a simple front-end for the [headsetcontrol](https://github.com/Sapd/HeadsetControl/) command line utility.
 
+![Screenshot](screenshot.png)
+
 ## Supported features
 - battery percentage display
 - sidetone level control

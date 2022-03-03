@@ -1,3 +1,6 @@
+from ast import Call
+from cProfile import label
+from pickle import TRUE
 from subprocess import CalledProcessError, check_output
 import sys
 
@@ -13,6 +16,14 @@ BIN_HEADSETCONTROL = None
 PARAM_BATTERY = "-b"
 PARAM_QUIET = "--short-output"
 PARAM_CAPABILITIES = "-?"
+PARAM_LED = "-l"
+PARAM_SIDETONE = "-s"
+PARAM_SIDETONE_OFF = 0
+PARAM_SIDETONE_VERYQUIET = 8
+PARAM_SIDETONE_QUIET = 16
+PARAM_SIDETONE_NORMAL = 32
+PARAM_SIDETONE_LOUD = 64
+PARAM_SIDETONE_VERYLOUD = 100
 
 TRAY_ROOT = None
 TRAY_BATTERY = None
@@ -82,8 +93,21 @@ def update_battery_level():
         TRAY_BATTERY.setText("Battery: " + str(batlevel) + "%")
         TRAY_ROOT.setToolTip("Battery: " + str(batlevel) + "%")
 
+def set_led(state):
+    try:
+        check_output([BIN_HEADSETCONTROL, PARAM_LED, str(state)])
+    except CalledProcessError as e:
+        print(e)
+
+def set_sidetone(level):
+    try:
+        check_output([BIN_HEADSETCONTROL, PARAM_SIDETONE, str(level)])
+    except CalledProcessError as e:
+        print(e)
+
 def update():
-    if b"b" in get_capabilities():
+    capabilities = get_capabilities()
+    if b"b" in capabilities:
         update_battery_level()
     else:
         TRAY_ROOT.setToolTip("Unknown battery level")
@@ -92,20 +116,56 @@ def update():
 if __name__ == '__main__':
 
     BIN_HEADSETCONTROL = which("headsetcontrol")
+    capabilities = get_capabilities()
 
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
 
+    # Tray icon root.
     TRAY_ROOT = QSystemTrayIcon(QIcon("icon.svg"), app)
     menu = QMenu()
 
+    # Battery status button.
     TRAY_BATTERY = QAction()
     menu.addAction(TRAY_BATTERY)
 
+    # Status / control sections separator.
+    menu.addSeparator()
+
+    # Add actions according to headsets' capabilities.
+    if b"l" in capabilities:
+        action_ledOn = QAction("On")
+        action_ledOn.triggered.connect(lambda: set_led(1))
+        action_ledOff = QAction("Off")
+        action_ledOff.triggered.connect(lambda: set_led(0))
+        submenu_led = QMenu("LED")
+        submenu_led.addActions([action_ledOn, action_ledOff])
+        menu.addMenu(submenu_led)
+    if b"s" in capabilities:
+        action_sidetoneOff = QAction("Off")
+        action_sidetoneOff.triggered.connect(lambda: set_sidetone(PARAM_SIDETONE_OFF))
+        action_sidetoneVeryQuiet = QAction("Very quiet")
+        action_sidetoneVeryQuiet.triggered.connect(lambda: set_sidetone(PARAM_SIDETONE_VERYQUIET))
+        action_sidetoneLow = QAction("Quiet")
+        action_sidetoneLow.triggered.connect(lambda: set_sidetone(PARAM_SIDETONE_QUIET))
+        action_sidetoneNormal = QAction("Normal")
+        action_sidetoneNormal.triggered.connect(lambda: set_sidetone(PARAM_SIDETONE_NORMAL))
+        action_sidetoneLoud = QAction("Loud")
+        action_sidetoneLoud.triggered.connect(lambda: set_sidetone(PARAM_SIDETONE_LOUD))
+        action_sidetoneVeryLoud = QAction("Very loud")
+        action_sidetoneVeryLoud.triggered.connect(lambda: set_sidetone(PARAM_SIDETONE_VERYLOUD))
+        submenu_sidetone = QMenu("Sidetone")
+        submenu_sidetone.addActions([action_sidetoneOff, action_sidetoneVeryQuiet, action_sidetoneLow, action_sidetoneNormal, action_sidetoneLoud, action_sidetoneVeryLoud])
+        menu.addMenu(submenu_sidetone)
+
+
+    # Exit button.
     action_exit = QAction("Exit")
     action_exit.triggered.connect(app.exit)
+    action_exit.setIcon(QIcon.fromTheme("application-exit"))
     menu.addAction(action_exit)
 
+    # Init tray menu.
     TRAY_ROOT.setContextMenu(menu)
     TRAY_ROOT.show()
 

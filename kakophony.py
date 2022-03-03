@@ -10,6 +10,7 @@ from shutil import which
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QSystemTrayIcon, QMenu, QApplication, QAction, QMessageBox
 from PySide2.QtCore import QTimer
+import PySide2.Qt
 
 # Headsetcontrol binary location.
 BIN_HEADSETCONTROL = None
@@ -133,14 +134,6 @@ if __name__ == '__main__':
     menu.addSeparator()
 
     # Add actions according to headsets' capabilities.
-    if b"l" in capabilities:
-        action_ledOn = QAction("On")
-        action_ledOn.triggered.connect(lambda: set_led(1))
-        action_ledOff = QAction("Off")
-        action_ledOff.triggered.connect(lambda: set_led(0))
-        submenu_led = QMenu("LED")
-        submenu_led.addActions([action_ledOn, action_ledOff])
-        menu.addMenu(submenu_led)
     if b"s" in capabilities:
         action_sidetoneOff = QAction("Off")
         action_sidetoneOff.triggered.connect(lambda: set_sidetone(PARAM_SIDETONE_OFF))
@@ -157,6 +150,14 @@ if __name__ == '__main__':
         submenu_sidetone = QMenu("Sidetone")
         submenu_sidetone.addActions([action_sidetoneOff, action_sidetoneVeryQuiet, action_sidetoneLow, action_sidetoneNormal, action_sidetoneLoud, action_sidetoneVeryLoud])
         menu.addMenu(submenu_sidetone)
+    if b"l" in capabilities:
+        action_ledOn = QAction("On")
+        action_ledOn.triggered.connect(lambda: set_led(1))
+        action_ledOff = QAction("Off")
+        action_ledOff.triggered.connect(lambda: set_led(0))
+        submenu_led = QMenu("LED")
+        submenu_led.addActions([action_ledOn, action_ledOff])
+        menu.addMenu(submenu_led)
 
 
     # Exit button.

@@ -123,7 +123,8 @@ if __name__ == '__main__':
     app.setQuitOnLastWindowClosed(False)
 
     # Tray icon root.
-    TRAY_ROOT = QSystemTrayIcon(QIcon("icon.svg"), app)
+    icon = QIcon().fromTheme("audio-headset", QIcon("icon.svg"))
+    TRAY_ROOT = QSystemTrayIcon(icon, app)
     menu = QMenu()
 
     # Battery status button.
